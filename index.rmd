@@ -1,0 +1,42 @@
+---
+title: "Plotly Assignment"
+author: "Craig Larmer"
+date: "12 February 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+  options(width=1000)
+  knitr::opts_chunk$set(echo = TRUE)
+  library(plotly)
+  library(dplyr)
+  library(tidyr)
+```
+
+```{r prepdata, echo=FALSE, verbose=FALSE}
+#load raw data
+  raw<-read.csv("TV036Aircraftmovementsannualdomesticinternationalarrivalsdepartures.csv",fileEncoding = "UTF-8",stringsAsFactors = FALSE)
+#pivot data, remove total row and tidy data  
+tidy <- tbl_df(raw) %>% gather(year, traffic,X2004:X2015) %>% select(town=X,year,traffic) %>% filter(!grepl("Total",town) ) %>% mutate(year = substr(year,2,5),traffic = gsub(",","",traffic))
+
+#convert character number to numeric  
+  tidy$traffic <- as.numeric(tidy$traffic)    
+  
+#find the top 14 towns for the entire data set  
+  top14towns <- tidy %>% group_by(town) %>% summarise(totaltraffic = sum(traffic,na.rm=TRUE)) %>% top_n(14,totaltraffic)
+
+#summaraize towns outside top 14 into "Other" and total
+  top15towns <- tidy %>% left_join(top14towns,by = "town") %>% mutate(displaytown = ifelse(is.na(totaltraffic),"Other",as.character(town))) %>% group_by(displaytown,year) %>% summarise(totaltraffic = sum(traffic,na.rm=TRUE))
+```
+## Air Traffic in New Zealand
+
+The following chart shows aircraft movements for each year by geographic area.
+
+```{r plotlychart,echo=FALSE, verbose=FALSE, message=FALSE,warning=FALSE}
+plot_ly(data=top15towns,x=~year,y=~totaltraffic,type="scatter",mode="markers+lines",color=~displaytown) %>% layout(yaxis = list(title = "Aircraft Movements (Arrivals & Departures)"),xaxis = list(title = "Year"))
+
+```
+
+The data has been sourced from the New Zealand Ministry of Transport website.  
+
+Full details of the data set are available here: http://www.transport.govt.nz/ourwork/tmif/transport-volume/tv036/
