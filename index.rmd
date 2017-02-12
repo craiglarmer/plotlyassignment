@@ -2,7 +2,7 @@
 title: "Plotly Assignment"
 author: "Craig Larmer"
 date: "12 February 2017"
-output: html_document
+output: ioslides_presentation
 ---
 
 ```{r setup, include=FALSE}
@@ -29,6 +29,14 @@ tidy <- tbl_df(raw) %>% gather(year, traffic,X2004:X2015) %>% select(town=X,year
 #summaraize towns outside top 14 into "Other" and total
   top15towns <- tidy %>% left_join(top14towns,by = "town") %>% mutate(displaytown = ifelse(is.na(totaltraffic),"Other",as.character(town))) %>% group_by(displaytown,year) %>% summarise(totaltraffic = sum(traffic,na.rm=TRUE))
 ```
+## Introduction
+
+The following slide shows aircraft movement trends for New Zealand
+
+The data has been sourced from the New Zealand Ministry of Transport website.  
+
+Full details of the data set are available here: http://www.transport.govt.nz/ourwork/tmif/transport-volume/tv036/
+
 ## Air Traffic in New Zealand
 
 The following chart shows aircraft movements for each year by geographic area.
@@ -38,6 +46,3 @@ plot_ly(data=top15towns,x=~year,y=~totaltraffic,type="scatter",mode="markers+lin
 
 ```
 
-The data has been sourced from the New Zealand Ministry of Transport website.  
-
-Full details of the data set are available here: http://www.transport.govt.nz/ourwork/tmif/transport-volume/tv036/
